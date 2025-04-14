@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -8,15 +10,17 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 
 app.use(cors());
+app.use(bodyParser.json());
 
-app.get('/notify', async (req, res) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const userAgent = req.headers['user-agent'];
-  const time = new Date().toLocaleString();
+app.post('/notify', async (req, res) => {
+  const { ip, city, region, country, org, userAgent, time } = req.body;
 
-  const message = `👀 *New Page Visit!*
+  const message = `📥 *New Visitor Alert!*
+
 🕒 ${time}
 📍 IP: ${ip}
+🌍 Location: ${city}, ${region}, ${country}
+🏢 ISP: ${org}
 🖥 Browser: ${userAgent}`;
 
   try {
@@ -27,11 +31,11 @@ app.get('/notify', async (req, res) => {
         parse_mode: "Markdown"
       }
     });
-    res.send('Notified!');
+    res.send("Notified with details");
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Failed to send message');
+    console.error("Telegram error", err);
+    res.status(500).send("Failed to send message");
   }
 });
 
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
